@@ -171,12 +171,23 @@ const TOOLS_CONFIG = [
     multiple: false
   },
   {
-    id: 'handwritten',
-    name: 'Text to Handwritten Notes',
+    id: 'type2handwritten',
+    name: 'Type to Handwritten Notes',
     category: 'edit',
     icon: FileEdit,
-    badge: '★ Student Special',
-    desc: 'Convert typed text or uploaded PDF notes into realistic human handwritten assignments & notebook pages.',
+    badge: '★ Direct Typing',
+    desc: 'Directly type or paste your assignment text and generate realistic handwritten notebook PDF instantly.',
+    accept: '',
+    multiple: false,
+    noUpload: true
+  },
+  {
+    id: 'handwritten',
+    name: 'PDF / File to Handwritten Notes',
+    category: 'edit',
+    icon: PenTool,
+    badge: 'File Converter',
+    desc: 'Upload a PDF or TXT file to convert its text into realistic handwritten notebook pages.',
     accept: '.pdf,.txt',
     multiple: false
   },
@@ -230,7 +241,7 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
 
   // Live Canvas Preview for Handwritten Notes
   React.useEffect(() => {
-    if (selectedTool?.id !== 'handwritten') return;
+    if (selectedTool?.id !== 'handwritten' && selectedTool?.id !== 'type2handwritten') return;
     const canvas = previewCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -425,7 +436,8 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
 
   // Execution Switcher
   const handleExecuteTool = async () => {
-    if (!selectedTool || files.length === 0) {
+    if (!selectedTool) return;
+    if (!selectedTool.noUpload && files.length === 0 && selectedTool.id !== 'handwritten' && selectedTool.id !== 'type2handwritten') {
       if (onToast) onToast('Please select file(s) to proceed.', 'error');
       return;
     }
@@ -529,6 +541,7 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
           filename = 'signed_document.pdf';
           break;
 
+        case 'type2handwritten':
         case 'handwritten':
           let textForNotes = handwritingText;
           if (files.length > 0) {
@@ -660,40 +673,52 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
             </button>
           </div>
 
-          {/* File Upload Zone */}
-          <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDrop}
-            className="border-2 border-dashed border-slate-700/80 hover:border-indigo-500 rounded-3xl p-8 text-center space-y-4 bg-[#080c14] transition-all"
-          >
-            <Upload className="w-12 h-12 text-indigo-400 mx-auto animate-pulse" />
-            <div>
-              <h3 className="font-bold text-white text-base">
-                {selectedTool.multiple ? 'Select or Drag 1 or more PDF files' : 'Select or Drag PDF document'}
-              </h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Client-side processing — No files leave your device
+          {/* File Upload Zone OR Direct Typing Banner */}
+          {selectedTool.noUpload ? (
+            <div className="bg-gradient-to-r from-indigo-950/60 via-purple-950/40 to-indigo-950/60 border border-indigo-500/30 rounded-3xl p-6 text-center space-y-2 shadow-xl">
+              <div className="inline-flex items-center gap-2 text-indigo-300 font-extrabold text-sm">
+                <PenTool className="w-5 h-5 text-indigo-400" />
+                <span>Direct Typing Workspace — Type & Customize Handwritten Assignment Below</span>
+              </div>
+              <p className="text-xs text-slate-400">
+                No file upload needed! Simply edit your text in the workspace below and watch your handwritten notebook page generate live.
               </p>
             </div>
+          ) : (
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={handleDrop}
+              className="border-2 border-dashed border-slate-700/80 hover:border-indigo-500 rounded-3xl p-8 text-center space-y-4 bg-[#080c14] transition-all"
+            >
+              <Upload className="w-12 h-12 text-indigo-400 mx-auto animate-pulse" />
+              <div>
+                <h3 className="font-bold text-white text-base">
+                  {selectedTool.multiple ? 'Select or Drag 1 or more PDF files' : 'Select or Drag PDF document'}
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Client-side processing — No files leave your device
+                </p>
+              </div>
 
-            <input
-              type="file"
-              multiple={selectedTool.multiple}
-              accept={selectedTool.accept}
-              onChange={handleFileChange}
-              className="hidden"
-              id="tool-file-input"
-            />
-            <div className="flex items-center justify-center gap-3">
-              <label
-                htmlFor="tool-file-input"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-extrabold cursor-pointer transition-all shadow-xl shadow-indigo-600/30"
-              >
-                <Upload className="w-4 h-4" />
-                <span>{files.length > 0 ? '+ Add More Files' : 'Browse Files'}</span>
-              </label>
+              <input
+                type="file"
+                multiple={selectedTool.multiple}
+                accept={selectedTool.accept}
+                onChange={handleFileChange}
+                className="hidden"
+                id="tool-file-input"
+              />
+              <div className="flex items-center justify-center gap-3">
+                <label
+                  htmlFor="tool-file-input"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-extrabold cursor-pointer transition-all shadow-xl shadow-indigo-600/30"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span>{files.length > 0 ? '+ Add More Files' : 'Browse Files'}</span>
+                </label>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Tool Options & Settings Panel */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#080c14] border border-slate-800 rounded-2xl p-6">
@@ -901,7 +926,7 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
                 </div>
               )}
 
-              {selectedTool.id === 'handwritten' && (
+              {(selectedTool.id === 'handwritten' || selectedTool.id === 'type2handwritten') && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
