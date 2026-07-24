@@ -1,5 +1,3 @@
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 import confetti from 'canvas-confetti';
 
 /**
@@ -24,6 +22,12 @@ export async function exportElementToPDF(element, filename = 'document.pdf', for
   if (!element) return;
 
   try {
+    // Dynamic imports — only loaded when user triggers export
+    const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+      import('html2canvas'),
+      import('jspdf')
+    ]);
+
     // 3.0x scale rendering for high-DPI quality
     const canvas = await html2canvas(element, {
       scale: 3.0,

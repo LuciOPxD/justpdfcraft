@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import Navbar from './components/Navbar';
 import TemplateSelector from './components/TemplateSelector';
 import SplitScreenEditor from './components/SplitScreenEditor';
-import PDFToolsSuite from './components/PDFToolsSuite';
 import { getSavedDrafts, saveDraft, deleteDraft } from './utils/storage';
 import { exportElementToPDF } from './utils/pdfExport';
 import { Sparkles, CheckCircle2, AlertCircle, ShieldCheck, Download, Zap } from 'lucide-react';
+
+const PDFToolsSuite = lazy(() => import('./components/PDFToolsSuite'));
 
 const DEFAULT_FORM_DATA = {
   id: 'draft_default',
@@ -158,7 +159,11 @@ export default function App() {
                 Merge PDF files or convert images to PDF. 100% private, browser local.
               </p>
             </div>
-            <PDFToolsSuite onToast={showToast} />
+            <Suspense fallback={
+              <div className="text-center py-12 text-slate-400 text-sm animate-pulse">Loading PDF Tools...</div>
+            }>
+              <PDFToolsSuite onToast={showToast} />
+            </Suspense>
           </div>
         )}
       </main>

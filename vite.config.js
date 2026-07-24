@@ -12,5 +12,10 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true
+  },
+  build: {
+    // html2canvas is ~1.3MB minified — it's loaded lazily on PDF export, not at page load
+    chunkSizeWarningLimit: 1400,
   }
 });
+
