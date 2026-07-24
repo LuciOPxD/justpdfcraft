@@ -24,7 +24,7 @@ import {
   PenTool,
   ArrowRight,
   RefreshCw,
-  FolderZip
+  FolderArchive
 } from 'lucide-react';
 import { triggerExportConfetti } from '../utils/pdfExport';
 import {
@@ -112,7 +112,7 @@ const TOOLS_CONFIG = [
     id: 'pdf2jpg',
     name: 'PDF to JPG',
     category: 'convert_from',
-    icon: FolderZip,
+    icon: FolderArchive,
     badge: 'Extract',
     desc: 'Convert every PDF page into high-resolution JPG images packaged in ZIP.',
     accept: '.pdf',
