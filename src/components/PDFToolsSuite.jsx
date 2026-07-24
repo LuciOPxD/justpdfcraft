@@ -171,25 +171,15 @@ const TOOLS_CONFIG = [
     multiple: false
   },
   {
-    id: 'type2handwritten',
-    name: 'Type to Handwritten Notes',
+    id: 'handwritten',
+    name: 'Text & PDF to Handwritten Notes',
     category: 'edit',
     icon: FileEdit,
-    badge: '★ Direct Typing',
-    desc: 'Directly type or paste your assignment text and generate realistic handwritten notebook PDF instantly.',
-    accept: '',
+    badge: '★ Student Special',
+    desc: 'Directly type text or upload PDF/TXT notes to convert into realistic human handwritten notebook assignments.',
+    accept: '.pdf,.txt',
     multiple: false,
     noUpload: true
-  },
-  {
-    id: 'handwritten',
-    name: 'PDF / File to Handwritten Notes',
-    category: 'edit',
-    icon: PenTool,
-    badge: 'File Converter',
-    desc: 'Upload a PDF or TXT file to convert its text into realistic handwritten notebook pages.',
-    accept: '.pdf,.txt',
-    multiple: false
   },
   // SECURITY
   {
