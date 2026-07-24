@@ -222,10 +222,110 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
     'Assignment 1: Quantum Physics Overview\n\nQuantum mechanics is a fundamental theory in physics that provides a description of the physical properties of nature at the scale of atoms and subatomic particles.\n\nKey Concepts:\n1. Wave-Particle Duality\n2. Uncertainty Principle\n3. Quantum Entanglement'
   );
 
-  // Signature Pad State
+  // Signature Pad & Live Preview Refs
   const canvasRef = useRef(null);
+  const previewCanvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [signatureData, setSignatureData] = useState(null);
+
+  // Live Canvas Preview for Handwritten Notes
+  React.useEffect(() => {
+    if (selectedTool?.id !== 'handwritten') return;
+    const canvas = previewCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const width = 500;
+    const height = 660;
+    canvas.width = width;
+    canvas.height = height;
+
+    const marginTop = 45;
+    const marginLeft = 55;
+    const marginRight = 35;
+    const marginBottom = 45;
+    const lineHeight = 24;
+
+    // Paper Background
+    if (paperStyle === 'legal') {
+      ctx.fillStyle = '#fffdf0';
+    } else {
+      ctx.fillStyle = '#ffffff';
+    }
+    ctx.fillRect(0, 0, width, height);
+
+    // Lines & Margins
+    if (paperStyle === 'ruled' || paperStyle === 'legal') {
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1;
+      for (let y = marginTop; y < height - marginBottom; y += lineHeight) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = '#f87171';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(marginLeft - 10, 0);
+      ctx.lineTo(marginLeft - 10, height);
+      ctx.stroke();
+    } else if (paperStyle === 'grid') {
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 0.8;
+      for (let x = 0; x < width; x += 18) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < height; y += 18) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+    }
+
+    const fontSize = 15;
+    ctx.font = `${fontSize}px "${handwritingFont}", cursive, sans-serif`;
+    ctx.fillStyle = inkColor;
+    ctx.textBaseline = 'alphabetic';
+
+    const maxLineWidth = width - marginLeft - marginRight;
+    let currentY = marginTop + lineHeight - 5;
+
+    const cleanText = (handwritingText || '').replace(/[^\x09\x0A\x0D\x20-\x7E\u0900-\u097F]/g, '');
+    const paragraphs = cleanText.split('\n');
+
+    for (const para of paragraphs) {
+      if (currentY > height - marginBottom) break;
+      if (para.trim() === '') {
+        currentY += lineHeight;
+        continue;
+      }
+      const words = para.split(' ');
+      let currentLine = '';
+
+      for (let i = 0; i < words.length; i++) {
+        const testLine = currentLine ? `${currentLine} ${words[i]}` : words[i];
+        if (ctx.measureText(testLine).width > maxLineWidth && i > 0) {
+          ctx.fillText(currentLine, marginLeft, currentY);
+          currentLine = words[i];
+          currentY += lineHeight;
+          if (currentY > height - marginBottom) break;
+        } else {
+          currentLine = testLine;
+        }
+      }
+
+      if (currentLine && currentY <= height - marginBottom) {
+        ctx.fillText(currentLine, marginLeft, currentY);
+        currentY += lineHeight;
+      }
+    }
+  }, [selectedTool?.id, handwritingText, handwritingFont, paperStyle, inkColor]);
 
   // Filter tools
   const filteredTools = TOOLS_CONFIG.filter((t) => {
@@ -802,7 +902,7 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
               )}
 
               {selectedTool.id === 'handwritten' && (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="text-xs text-slate-400 font-semibold block">Handwriting Font:</label>
@@ -859,15 +959,33 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
 
                   <div>
                     <label className="text-xs text-slate-400 font-semibold block">
-                      Type/Paste Assignment Text (or Upload PDF/TXT file above):
+                      Type/Paste Assignment Text (updates live on preview below):
                     </label>
                     <textarea
                       rows={4}
                       value={handwritingText}
                       onChange={(e) => setHandwritingText(e.target.value)}
-                      placeholder="Paste your typed assignment or notes here..."
+                      placeholder="Type or paste assignment text here..."
                       className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-white font-mono mt-1 focus:outline-none focus:border-indigo-500"
                     />
+                  </div>
+
+                  {/* Live Notebook Preview Box */}
+                  <div className="space-y-1.5 pt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-extrabold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> Live Notebook Page 1 Preview:
+                      </span>
+                      <span className="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                        Updates in Real-Time
+                      </span>
+                    </div>
+                    <div className="border-2 border-slate-800 rounded-2xl p-2 bg-slate-950 flex items-center justify-center overflow-hidden shadow-inner">
+                      <canvas
+                        ref={previewCanvasRef}
+                        className="w-full max-w-[340px] h-auto rounded-lg shadow-2xl border border-slate-300"
+                      />
+                    </div>
                   </div>
                 </div>
               )}

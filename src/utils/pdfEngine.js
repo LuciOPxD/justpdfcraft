@@ -293,21 +293,19 @@ export async function extractTextFromPDF(file) {
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
-      const pageText = textContent.items.map((item) => item.str).join(' ');
-      fullText += `--- Page ${i} ---\n${pageText}\n\n`;
+      const pageText = textContent.items
+        .map((item) => item.str)
+        .join(' ')
+        .replace(/[^\x09\x0A\x0D\x20-\x7E\u0900-\u097F]/g, '');
+      if (pageText.trim()) {
+        fullText += `--- Page ${i} ---\n${pageText}\n\n`;
+      }
     }
 
-    return fullText;
+    return fullText.trim() || 'No readable text found in document. Please paste typed text directly.';
   } catch (err) {
-    console.warn('PDFJS text extraction error, using fallback:', err);
-    const bytes = await file.arrayBuffer();
-    const decoder = new TextDecoder('utf-8');
-    const rawText = decoder.decode(bytes);
-    const matches = rawText.match(/\(([^()]+)\)/g);
-    if (matches) {
-      return matches.map((m) => m.replace(/[()]/g, '')).filter((t) => t.length > 2).join(' ');
-    }
-    return 'Extracted Text:\n(Text contents processed from document)';
+    console.warn('PDFJS text extraction error:', err);
+    return 'Unable to extract text from scanned PDF. Please type or paste your assignment text in the box below.';
   }
 }
 
@@ -419,6 +417,11 @@ export async function compressPDF(file) {
  * Text or PDF to Realistic Handwritten Notes Converter
  */
 export async function textToHandwrittenPDF(rawText, { fontName = 'Kalam', paperType = 'ruled', inkColor = '#1e3a8a', fontSize = 22 } = {}) {
+  // Sanitize rawText to strip binary garbage
+  if (typeof rawText === 'string') {
+    rawText = rawText.replace(/[^\x09\x0A\x0D\x20-\x7E\u0900-\u097F]/g, '');
+  }
+
   if (!rawText || rawText.trim() === '') {
     rawText = 'Sample Handwritten Notes\n\n1. Introduction to Assignment\nThis document is converted into realistic human handwriting font with notebook paper background and blue ink.';
   }
