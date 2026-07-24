@@ -24,7 +24,8 @@ import {
   PenTool,
   ArrowRight,
   RefreshCw,
-  FolderArchive
+  FolderArchive,
+  Printer
 } from 'lucide-react';
 import { triggerExportConfetti } from '../utils/pdfExport';
 import {
@@ -41,7 +42,8 @@ import {
   extractTextFromPDF,
   pdfToDocx,
   compressPDF,
-  textToHandwrittenPDF
+  textToHandwrittenPDF,
+  printPDFBlob
 } from '../utils/pdfEngine';
 
 const TOOLS_CONFIG = [
@@ -566,6 +568,117 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
     } catch (err) {
       console.error(err);
       if (onToast) onToast(`Error executing ${selectedTool.name}.`, 'error');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handlePrintTool = async () => {
+    if (!selectedTool) return;
+    if (!selectedTool.noUpload && files.length === 0) {
+      if (onToast) onToast('Please select file(s) to print.', 'error');
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      let outputBlob = null;
+
+      switch (selectedTool.id) {
+        case 'merge':
+          if (files.length < 2) {
+            if (onToast) onToast('Please select at least 2 PDF files to merge.', 'error');
+            setIsProcessing(false);
+            return;
+          }
+          outputBlob = await mergePDFs(files);
+          break;
+
+        case 'split':
+          outputBlob = await splitPDF(files[0], splitRange);
+          break;
+
+        case 'remove_pages':
+          const pageNums = removePagesStr.split(',').map((n) => parseInt(n.trim(), 10)).filter(Boolean);
+          outputBlob = await removePagesFromPDF(files[0], pageNums);
+          break;
+
+        case 'rotate':
+          outputBlob = await rotatePDFPages(files[0], rotateAngle);
+          break;
+
+        case 'compress':
+          outputBlob = await compressPDF(files[0]);
+          break;
+
+        case 'img2pdf':
+          outputBlob = await imagesToPDF(files);
+          break;
+
+        case 'page_numbers':
+          outputBlob = await addPageNumbersToPDF(files[0], {
+            position: pageNumPosition,
+            format: pageNumFormat
+          });
+          break;
+
+        case 'watermark':
+          outputBlob = await watermarkPDF(files[0], {
+            watermarkText,
+            opacity: parseFloat(watermarkOpacity),
+            color: watermarkColor
+          });
+          break;
+
+        case 'protect':
+          if (!pdfPassword) {
+            if (onToast) onToast('Please enter password to protect PDF.', 'error');
+            setIsProcessing(false);
+            return;
+          }
+          outputBlob = await protectPDF(files[0], pdfPassword);
+          break;
+
+        case 'sign':
+          if (!signatureData) {
+            if (onToast) onToast('Please draw or create your signature first.', 'error');
+            setIsProcessing(false);
+            return;
+          }
+          outputBlob = await signPDF(files[0], signatureData);
+          break;
+
+        case 'handwritten':
+          let textForNotes = handwritingText;
+          if (files.length > 0) {
+            if (files[0].name.endsWith('.txt')) {
+              textForNotes = await files[0].text();
+            } else if (files[0].name.endsWith('.pdf')) {
+              textForNotes = await extractTextFromPDF(files[0]);
+            }
+          }
+          outputBlob = await textToHandwrittenPDF(textForNotes, {
+            fontName: handwritingFont,
+            paperType: paperStyle,
+            inkColor: inkColor,
+            fontSize: 22
+          });
+          break;
+
+        default:
+          if (files.length > 0) {
+            outputBlob = files[0];
+          }
+          break;
+      }
+
+      if (outputBlob) {
+        printPDFBlob(outputBlob);
+        if (onToast) onToast('Opening print dialog... 🖨️', 'info');
+      }
+    } catch (err) {
+      console.error(err);
+      if (onToast) onToast(`Error preparing print for ${selectedTool.name}.`, 'error');
     } finally {
       setIsProcessing(false);
     }
@@ -1110,12 +1223,21 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
             </div>
           )}
 
-          {/* Big Execution Download Button */}
-          <div>
+          {/* Big Action Buttons Row (Print + Download) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button
+              onClick={handlePrintTool}
+              disabled={isProcessing || (!selectedTool.noUpload && files.length === 0)}
+              className="flex items-center justify-center gap-2.5 w-full py-4 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-sm font-extrabold shadow-xl disabled:opacity-50 transition-all active:scale-[0.99] cursor-pointer"
+            >
+              <Printer className="w-5 h-5 text-indigo-400" />
+              <span>Print {selectedTool.name}</span>
+            </button>
+
             <button
               onClick={handleExecuteTool}
               disabled={isProcessing || (!selectedTool.noUpload && files.length === 0)}
-              className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white text-sm font-extrabold shadow-2xl shadow-indigo-600/30 disabled:opacity-50 transition-all active:scale-[0.99]"
+              className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white text-sm font-extrabold shadow-2xl shadow-indigo-600/30 disabled:opacity-50 transition-all active:scale-[0.99] cursor-pointer"
             >
               {isProcessing ? (
                 <>

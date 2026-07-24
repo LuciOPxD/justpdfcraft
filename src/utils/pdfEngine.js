@@ -589,3 +589,31 @@ export async function textToHandwrittenPDF(rawText, { fontName = 'Kalam', paperT
   return new Blob([pdfBytes], { type: 'application/pdf' });
 }
 
+/**
+ * Print a PDF or Document Blob directly using browser iframe print
+ */
+export function printPDFBlob(blob) {
+  if (!blob) return;
+  const url = URL.createObjectURL(blob);
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.src = url;
+
+  document.body.appendChild(iframe);
+  iframe.onload = () => {
+    setTimeout(() => {
+      try {
+        iframe.focus();
+        iframe.contentWindow.print();
+      } catch (e) {
+        window.open(url, '_blank');
+      }
+    }, 300);
+  };
+}
+
