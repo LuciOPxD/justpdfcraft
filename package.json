@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node -e \"require('fs').cpSync('dist', '.', {recursive: true})\"",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy": "vite build && npx gh-pages -d dist",
-    "push": "npm run deploy && git add . && git commit -m \"Deploy React 19 UI UX Studio to gh-pages\" && git push"
+    "deploy": "npm run build && npx gh-pages -d dist",
+    "push": "npm run deploy && git add . && git commit -m \"Deploy React 19 production build to main root and gh-pages\" && git push"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
