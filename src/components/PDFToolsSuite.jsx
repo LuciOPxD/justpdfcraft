@@ -226,7 +226,40 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
 
   const handleFileChange = (e) => {
     const selected = Array.from(e.target.files);
-    setFiles(selected);
+    if (!selected.length) return;
+    if (selectedTool?.multiple) {
+      setFiles((prev) => [...prev, ...selected]);
+    } else {
+      setFiles(selected);
+    }
+    e.target.value = '';
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const dropped = Array.from(e.dataTransfer.files);
+    if (!dropped.length) return;
+    if (selectedTool?.multiple) {
+      setFiles((prev) => [...prev, ...dropped]);
+    } else {
+      setFiles(dropped.slice(0, 1));
+    }
+  };
+
+  const handleRemoveFile = (index) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleMoveFile = (index, direction) => {
+    setFiles((prev) => {
+      const updated = [...prev];
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= updated.length) return updated;
+      const temp = updated[index];
+      updated[index] = updated[targetIndex];
+      updated[targetIndex] = temp;
+      return updated;
+    });
   };
 
   // Signature Pad Drawing Handlers
@@ -491,11 +524,15 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
           </div>
 
           {/* File Upload Zone */}
-          <div className="border-2 border-dashed border-slate-700/80 hover:border-indigo-500 rounded-3xl p-8 text-center space-y-4 bg-[#080c14] transition-all">
+          <div
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleDrop}
+            className="border-2 border-dashed border-slate-700/80 hover:border-indigo-500 rounded-3xl p-8 text-center space-y-4 bg-[#080c14] transition-all"
+          >
             <Upload className="w-12 h-12 text-indigo-400 mx-auto animate-pulse" />
             <div>
               <h3 className="font-bold text-white text-base">
-                {selectedTool.multiple ? 'Select 1 or more files' : 'Select PDF document'}
+                {selectedTool.multiple ? 'Select or Drag 1 or more PDF files' : 'Select or Drag PDF document'}
               </h3>
               <p className="text-xs text-slate-400 mt-1">
                 Client-side processing — No files leave your device
@@ -510,13 +547,15 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
               className="hidden"
               id="tool-file-input"
             />
-            <label
-              htmlFor="tool-file-input"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-extrabold cursor-pointer transition-all shadow-xl shadow-indigo-600/30"
-            >
-              <Upload className="w-4 h-4" />
-              <span>Browse Files</span>
-            </label>
+            <div className="flex items-center justify-center gap-3">
+              <label
+                htmlFor="tool-file-input"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-extrabold cursor-pointer transition-all shadow-xl shadow-indigo-600/30"
+              >
+                <Upload className="w-4 h-4" />
+                <span>{files.length > 0 ? '+ Add More Files' : 'Browse Files'}</span>
+              </label>
+            </div>
           </div>
 
           {/* Tool Options & Settings Panel */}
@@ -525,31 +564,68 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
             <div className="space-y-3">
               <h4 className="text-xs font-extrabold text-slate-300 uppercase tracking-wider flex items-center justify-between">
                 <span>Selected Files ({files.length}):</span>
-                {files.length > 0 && (
-                  <button onClick={() => setFiles([])} className="text-red-400 hover:underline text-[11px]">
-                    Remove All
-                  </button>
-                )}
+                <div className="flex items-center gap-3">
+                  {selectedTool.multiple && (
+                    <label htmlFor="tool-file-input" className="text-indigo-400 hover:underline text-[11px] cursor-pointer font-bold">
+                      + Add File
+                    </label>
+                  )}
+                  {files.length > 0 && (
+                    <button onClick={() => setFiles([])} className="text-red-400 hover:underline text-[11px]">
+                      Remove All
+                    </button>
+                  )}
+                </div>
               </h4>
 
               {files.length === 0 ? (
                 <div className="p-6 border border-slate-800/80 rounded-xl text-center text-xs text-slate-500">
-                  No files selected yet. Click "Browse Files" above.
+                  No files selected yet. Click "Browse Files" or drag & drop files here.
                 </div>
               ) : (
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                   {files.map((file, idx) => (
                     <div
                       key={idx}
-                      className="p-3 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between text-xs"
+                      className="p-3 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between gap-2 text-xs"
                     >
-                      <div className="truncate max-w-[200px]">
+                      <div className="truncate flex-1">
                         <p className="font-bold text-slate-200 truncate">{file.name}</p>
                         <p className="text-[10px] text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                       </div>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-mono">
-                        File #{idx + 1}
-                      </span>
+
+                      <div className="flex items-center gap-1.5">
+                        {selectedTool.multiple && (
+                          <div className="flex items-center gap-0.5">
+                            <button
+                              disabled={idx === 0}
+                              onClick={() => handleMoveFile(idx, -1)}
+                              className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] disabled:opacity-30"
+                              title="Move Up"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              disabled={idx === files.length - 1}
+                              onClick={() => handleMoveFile(idx, 1)}
+                              className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] disabled:opacity-30"
+                              title="Move Down"
+                            >
+                              ▼
+                            </button>
+                          </div>
+                        )}
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-mono">
+                          #{idx + 1}
+                        </span>
+                        <button
+                          onClick={() => handleRemoveFile(idx)}
+                          className="p-1 text-red-400 hover:bg-red-950/40 rounded transition-colors"
+                          title="Delete File"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
