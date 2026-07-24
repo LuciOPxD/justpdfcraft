@@ -609,7 +609,7 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
           )}
         </div>
 
-        {/* Category Pills */}
+        {/* Category Pills & Quick Launcher */}
         <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
           {[
             { id: 'all', label: 'All Tools' },
@@ -632,6 +632,19 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
               {cat.label}
             </button>
           ))}
+        </div>
+
+        <div className="pt-2">
+          <button
+            onClick={() => {
+              const handwrittenTool = TOOLS_CONFIG.find((t) => t.id === 'handwritten');
+              if (handwrittenTool) handleSelectTool(handwrittenTool);
+            }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 text-white text-xs font-black shadow-xl shadow-pink-600/30 hover:scale-105 transition-all cursor-pointer"
+          >
+            <PenTool className="w-4 h-4 text-pink-200" />
+            <span>Launch Handwritten Notes Studio (Live Real-Time Preview) ✨</span>
+          </button>
         </div>
       </div>
 
@@ -1101,7 +1114,7 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
           <div>
             <button
               onClick={handleExecuteTool}
-              disabled={isProcessing || files.length === 0}
+              disabled={isProcessing || (!selectedTool.noUpload && files.length === 0)}
               className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white text-sm font-extrabold shadow-2xl shadow-indigo-600/30 disabled:opacity-50 transition-all active:scale-[0.99]"
             >
               {isProcessing ? (
