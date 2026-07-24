@@ -414,3 +414,175 @@ export async function compressPDF(file) {
     return new Blob([compressedBytes], { type: 'application/pdf' });
   }
 }
+
+/**
+ * Text or PDF to Realistic Handwritten Notes Converter
+ */
+export async function textToHandwrittenPDF(rawText, { fontName = 'Kalam', paperType = 'ruled', inkColor = '#1e3a8a', fontSize = 22 } = {}) {
+  if (!rawText || rawText.trim() === '') {
+    rawText = 'Sample Handwritten Notes\n\n1. Introduction to Assignment\nThis document is converted into realistic human handwriting font with notebook paper background and blue ink.';
+  }
+
+  // Ensure font is loaded
+  await document.fonts.load(`${fontSize}px "${fontName}"`).catch(() => {});
+
+  const pdfDoc = await PDFDocument.create();
+  const canvasWidth = 794; // A4 at 96 DPI
+  const canvasHeight = 1123;
+  const marginTop = 80;
+  const marginLeft = 90;
+  const marginRight = 60;
+  const marginBottom = 80;
+  const lineHeight = 36;
+
+  const maxLineWidth = canvasWidth - marginLeft - marginRight;
+
+  // Function to create a paper page canvas
+  const createPaperCanvas = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+    const ctx = canvas.getContext('2d');
+
+    // Background color
+    if (paperType === 'legal') {
+      ctx.fillStyle = '#fffdf0';
+    } else {
+      ctx.fillStyle = '#ffffff';
+    }
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    // Draw lines
+    if (paperType === 'ruled' || paperType === 'legal') {
+      // Horizontal blue notebook lines
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1;
+      for (let y = marginTop; y < canvasHeight - marginBottom; y += lineHeight) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvasWidth, y);
+        ctx.stroke();
+      }
+
+      // Vertical red margin line
+      ctx.strokeStyle = '#f87171';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(marginLeft - 15, 0);
+      ctx.lineTo(marginLeft - 15, canvasHeight);
+      ctx.stroke();
+
+      if (paperType === 'legal') {
+        ctx.beginPath();
+        ctx.moveTo(marginLeft - 20, 0);
+        ctx.lineTo(marginLeft - 20, canvasHeight);
+        ctx.stroke();
+      }
+    } else if (paperType === 'grid') {
+      // Math grid
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 0.8;
+      for (let x = 0; x < canvasWidth; x += 28) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvasHeight);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvasHeight; y += 28) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvasWidth, y);
+        ctx.stroke();
+      }
+    }
+
+    ctx.font = `${fontSize}px "${fontName}", cursive, sans-serif`;
+    ctx.fillStyle = inkColor;
+    ctx.textBaseline = 'alphabetic';
+    return { canvas, ctx };
+  };
+
+  let { canvas, ctx } = createPaperCanvas();
+  let currentY = marginTop + lineHeight - 8;
+  const pages = [canvas];
+
+  // Split text into paragraphs and wrap lines
+  const paragraphs = rawText.split('\n');
+
+  for (const para of paragraphs) {
+    if (para.trim() === '') {
+      currentY += lineHeight;
+      if (currentY + lineHeight > canvasHeight - marginBottom) {
+        const newPaper = createPaperCanvas();
+        canvas = newPaper.canvas;
+        ctx = newPaper.ctx;
+        pages.push(canvas);
+        currentY = marginTop + lineHeight - 8;
+      }
+      continue;
+    }
+
+    const words = para.split(' ');
+    let currentLine = '';
+
+    for (let i = 0; i < words.length; i++) {
+      const testLine = currentLine ? `${currentLine} ${words[i]}` : words[i];
+      const metrics = ctx.measureText(testLine);
+
+      if (metrics.width > maxLineWidth && i > 0) {
+        // Draw line with subtle handwriting randomness
+        ctx.save();
+        const jitterY = (Math.random() - 0.5) * 1.5;
+        ctx.fillText(currentLine, marginLeft, currentY + jitterY);
+        ctx.restore();
+
+        currentLine = words[i];
+        currentY += lineHeight;
+
+        if (currentY + lineHeight > canvasHeight - marginBottom) {
+          const newPaper = createPaperCanvas();
+          canvas = newPaper.canvas;
+          ctx = newPaper.ctx;
+          pages.push(canvas);
+          currentY = marginTop + lineHeight - 8;
+        }
+      } else {
+        currentLine = testLine;
+      }
+    }
+
+    if (currentLine) {
+      ctx.save();
+      const jitterY = (Math.random() - 0.5) * 1.5;
+      ctx.fillText(currentLine, marginLeft, currentY + jitterY);
+      ctx.restore();
+      currentY += lineHeight;
+
+      if (currentY + lineHeight > canvasHeight - marginBottom) {
+        const newPaper = createPaperCanvas();
+        canvas = newPaper.canvas;
+        ctx = newPaper.ctx;
+        pages.push(canvas);
+        currentY = marginTop + lineHeight - 8;
+      }
+    }
+  }
+
+  // Convert pages canvas array into PDF document
+  for (const pCanvas of pages) {
+    const imgDataUrl = pCanvas.toDataURL('image/jpeg', 0.95);
+    const imgBytes = await fetch(imgDataUrl).then((r) => r.arrayBuffer());
+    const embedded = await pdfDoc.embedJpg(imgBytes);
+    const page = pdfDoc.addPage([canvasWidth, canvasHeight]);
+    page.drawImage(embedded, {
+      x: 0,
+      y: 0,
+      width: canvasWidth,
+      height: canvasHeight
+    });
+  }
+
+  const pdfBytes = await pdfDoc.save({ useObjectStreams: true });
+  return new Blob([pdfBytes], { type: 'application/pdf' });
+}
+

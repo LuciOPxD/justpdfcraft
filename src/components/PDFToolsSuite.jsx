@@ -40,7 +40,8 @@ import {
   pdfToImagesZip,
   extractTextFromPDF,
   pdfToDocx,
-  compressPDF
+  compressPDF,
+  textToHandwrittenPDF
 } from '../utils/pdfEngine';
 
 const TOOLS_CONFIG = [
@@ -169,6 +170,16 @@ const TOOLS_CONFIG = [
     accept: '.pdf',
     multiple: false
   },
+  {
+    id: 'handwritten',
+    name: 'Text to Handwritten Notes',
+    category: 'edit',
+    icon: FileEdit,
+    badge: '★ Student Special',
+    desc: 'Convert typed text or uploaded PDF notes into realistic human handwritten assignments & notebook pages.',
+    accept: '.pdf,.txt',
+    multiple: false
+  },
   // SECURITY
   {
     id: 'protect',
@@ -202,6 +213,14 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
   const [pageNumFormat, setPageNumFormat] = useState('Page {n} of {total}');
   const [pdfPassword, setPdfPassword] = useState('');
   const [extractedTextPreview, setExtractedTextPreview] = useState('');
+
+  // Handwritten Notes Generator Options
+  const [handwritingFont, setHandwritingFont] = useState('Kalam');
+  const [paperStyle, setPaperStyle] = useState('ruled');
+  const [inkColor, setInkColor] = useState('#1e3a8a');
+  const [handwritingText, setHandwritingText] = useState(
+    'Assignment 1: Quantum Physics Overview\n\nQuantum mechanics is a fundamental theory in physics that provides a description of the physical properties of nature at the scale of atoms and subatomic particles.\n\nKey Concepts:\n1. Wave-Particle Duality\n2. Uncertainty Principle\n3. Quantum Entanglement'
+  );
 
   // Signature Pad State
   const canvasRef = useRef(null);
@@ -408,6 +427,24 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
           }
           outputBlob = await signPDF(files[0], signatureData);
           filename = 'signed_document.pdf';
+          break;
+
+        case 'handwritten':
+          let textForNotes = handwritingText;
+          if (files.length > 0) {
+            if (files[0].name.endsWith('.txt')) {
+              textForNotes = await files[0].text();
+            } else if (files[0].name.endsWith('.pdf')) {
+              textForNotes = await extractTextFromPDF(files[0]);
+            }
+          }
+          outputBlob = await textToHandwrittenPDF(textForNotes, {
+            fontName: handwritingFont,
+            paperType: paperStyle,
+            inkColor: inkColor,
+            fontSize: 22
+          });
+          filename = 'handwritten_notes_assignment.pdf';
           break;
 
         default:
@@ -761,6 +798,77 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
                     onChange={(e) => setPdfPassword(e.target.value)}
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
                   />
+                </div>
+              )}
+
+              {selectedTool.id === 'handwritten' && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-slate-400 font-semibold block">Handwriting Font:</label>
+                      <select
+                        value={handwritingFont}
+                        onChange={(e) => setHandwritingFont(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white mt-1 font-semibold"
+                      >
+                        <option value="Kalam">Kalam (Cursive)</option>
+                        <option value="Caveat">Caveat (Flowing)</option>
+                        <option value="Dancing Script">Dancing Script (Elegant)</option>
+                        <option value="Patrick Hand">Patrick Hand (Neat)</option>
+                        <option value="Shadows Into Light">Shadows Into Light (Quick)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400 font-semibold block">Paper Style:</label>
+                      <select
+                        value={paperStyle}
+                        onChange={(e) => setPaperStyle(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white mt-1 font-semibold"
+                      >
+                        <option value="ruled">Blue Ruled Notebook Line</option>
+                        <option value="legal">Yellow Legal Pad</option>
+                        <option value="grid">Math Grid Paper</option>
+                        <option value="plain">Blank White Paper</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <label className="text-xs text-slate-400 font-semibold">Ink Color:</label>
+                    <div className="flex gap-2">
+                      {[
+                        { color: '#1e3a8a', label: 'Royal Blue' },
+                        { color: '#000000', label: 'Black Pen' },
+                        { color: '#dc2626', label: 'Red Pen' }
+                      ].map((ink) => (
+                        <button
+                          key={ink.color}
+                          onClick={() => setInkColor(ink.color)}
+                          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border ${
+                            inkColor === ink.color
+                              ? 'border-indigo-500 bg-indigo-500/20 text-white'
+                              : 'border-slate-800 bg-slate-900 text-slate-400'
+                          }`}
+                        >
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ink.color }} />
+                          <span>{ink.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-slate-400 font-semibold block">
+                      Type/Paste Assignment Text (or Upload PDF/TXT file above):
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={handwritingText}
+                      onChange={(e) => setHandwritingText(e.target.value)}
+                      placeholder="Paste your typed assignment or notes here..."
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-white font-mono mt-1 focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
                 </div>
               )}
 
