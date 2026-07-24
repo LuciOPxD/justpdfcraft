@@ -182,8 +182,10 @@ const TOOLS_CONFIG = [
   }
 ];
 
-export default function PDFToolsSuite({ onToast }) {
-  const [activeCategory, setActiveCategory] = useState('all');
+export default function PDFToolsSuite({ onToast, activeCategory: externalCategory, setActiveCategory: externalSetCategory }) {
+  const [internalCategory, setInternalCategory] = useState('all');
+  const activeCategory = externalCategory !== undefined ? externalCategory : internalCategory;
+  const setActiveCategory = externalSetCategory || setInternalCategory;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTool, setSelectedTool] = useState(null);
   const [files, setFiles] = useState([]);
