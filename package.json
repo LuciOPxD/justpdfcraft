@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "push": "git add . && git commit -m \"Upgrade JustPDFCraft to React 19, Vite, Tailwind CSS v4 & BillGen UI UX\" && git push"
+    "deploy": "vite build && npx gh-pages -d dist",
+    "push": "npm run deploy && git add . && git commit -m \"Deploy React 19 UI UX Studio to gh-pages\" && git push"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
@@ -25,6 +26,7 @@
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",
+    "gh-pages": "^6.3.0",
     "tailwindcss": "^4.0.7",
     "vite": "^6.1.0"
   }
