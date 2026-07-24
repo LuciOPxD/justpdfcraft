@@ -33,11 +33,11 @@ const DEFAULT_FORM_DATA = {
   bankDetails: 'HDFC Bank | A/C: 502000889977 | IFSC: HDFC0000104',
   terms: 'Payment due within 15 days of invoice date. All processing completed client-side.',
   signatureImage: '',
-  notes: 'Thank you for choosing BillGenerator Studio!'
+  notes: 'Thank you for choosing JustPDFCraft Studio!'
 };
 
 export default function App() {
-  const [activeMode, setActiveMode] = useState('editor'); // 'editor' or 'tools'
+  const [activeMode, setActiveMode] = useState('tools'); // Default to iLovePDF Suite mode
   const [selectedTemplate, setSelectedTemplate] = useState('gst');
   const [formData, setFormData] = useState(DEFAULT_FORM_DATA);
   const [savedDrafts, setSavedDrafts] = useState([]);
@@ -105,7 +105,7 @@ export default function App() {
         {activeMode === 'editor' ? (
           <>
             {/* Top Banner with UI/UX layout */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-[#0f172a] via-indigo-950/40 to-[#0f172a] border border-slate-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-[#0f172a] via-indigo-950/40 to-[#0f172a] border border-slate-800 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
               <div className="space-y-1 relative z-10">
                 <div className="flex items-center gap-2">
                   <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
@@ -152,15 +152,9 @@ export default function App() {
             />
           </>
         ) : (
-          <div className="space-y-6 py-4">
-            <div className="text-center space-y-2 max-w-xl mx-auto">
-              <h2 className="text-2xl font-black text-white">Client-Side PDF Utility Suite</h2>
-              <p className="text-xs text-slate-400">
-                Merge PDF files or convert images to PDF. 100% private, browser local.
-              </p>
-            </div>
+          <div className="space-y-6 py-2">
             <Suspense fallback={
-              <div className="text-center py-12 text-slate-400 text-sm animate-pulse">Loading PDF Tools...</div>
+              <div className="text-center py-16 text-slate-400 text-sm animate-pulse">Loading iLovePDF Tool Suite...</div>
             }>
               <PDFToolsSuite onToast={showToast} />
             </Suspense>
@@ -170,7 +164,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-slate-900 py-6 text-center text-xs text-slate-500 space-y-1">
-        <p>BillGenerator Studio &copy; {new Date().getFullYear()} — Built with React 19 & Tailwind CSS v4</p>
+        <p>JustPDFCraft Studio &copy; {new Date().getFullYear()} — iLovePDF Client-Side Engine Stack</p>
         <p className="text-[10px] text-slate-600">
           All document processing and draft saving occurs 100% locally in your browser.
         </p>
