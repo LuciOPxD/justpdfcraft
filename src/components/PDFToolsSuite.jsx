@@ -720,340 +720,380 @@ export default function PDFToolsSuite({ onToast, activeCategory: externalCategor
             </div>
           )}
 
-          {/* Tool Options & Settings Panel */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#080c14] border border-slate-800 rounded-2xl p-6">
-            {/* Left: Files List */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-extrabold text-slate-300 uppercase tracking-wider flex items-center justify-between">
-                <span>Selected Files ({files.length}):</span>
-                <div className="flex items-center gap-3">
-                  {selectedTool.multiple && (
-                    <label htmlFor="tool-file-input" className="text-indigo-400 hover:underline text-[11px] cursor-pointer font-bold">
-                      + Add File
-                    </label>
-                  )}
-                  {files.length > 0 && (
-                    <button onClick={() => setFiles([])} className="text-red-400 hover:underline text-[11px]">
-                      Remove All
-                    </button>
-                  )}
+          {/* Tool Workspace Panel */}
+          {(selectedTool.id === 'type2handwritten' || selectedTool.id === 'handwritten') ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-[#080c14] border border-slate-800 rounded-3xl p-6 sm:p-8">
+              {/* Left Column: Controls & Text Input Area */}
+              <div className="space-y-5">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <h4 className="text-xs font-extrabold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+                    <PenTool className="w-4 h-4 text-indigo-400" />
+                    <span>Assignment Text & Styling Studio</span>
+                  </h4>
+                  <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full font-bold">
+                    Real-Time Generator
+                  </span>
                 </div>
-              </h4>
 
-              {files.length === 0 ? (
-                <div className="p-6 border border-slate-800/80 rounded-xl text-center text-xs text-slate-500">
-                  No files selected yet. Click "Browse Files" or drag & drop files here.
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                  {files.map((file, idx) => (
-                    <div
-                      key={idx}
-                      className="p-3 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between gap-2 text-xs"
+                {/* Controls */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-slate-400 font-semibold block">Handwriting Font:</label>
+                    <select
+                      value={handwritingFont}
+                      onChange={(e) => setHandwritingFont(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white mt-1 font-semibold focus:border-indigo-500"
                     >
-                      <div className="truncate flex-1">
-                        <p className="font-bold text-slate-200 truncate">{file.name}</p>
-                        <p className="text-[10px] text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                      </div>
+                      <option value="Kalam">Kalam (Cursive)</option>
+                      <option value="Caveat">Caveat (Flowing)</option>
+                      <option value="Dancing Script">Dancing Script (Elegant)</option>
+                      <option value="Patrick Hand">Patrick Hand (Neat)</option>
+                      <option value="Shadows Into Light">Shadows Into Light (Quick)</option>
+                    </select>
+                  </div>
 
-                      <div className="flex items-center gap-1.5">
-                        {selectedTool.multiple && (
-                          <div className="flex items-center gap-0.5">
-                            <button
-                              disabled={idx === 0}
-                              onClick={() => handleMoveFile(idx, -1)}
-                              className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] disabled:opacity-30"
-                              title="Move Up"
-                            >
-                              ▲
-                            </button>
-                            <button
-                              disabled={idx === files.length - 1}
-                              onClick={() => handleMoveFile(idx, 1)}
-                              className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] disabled:opacity-30"
-                              title="Move Down"
-                            >
-                              ▼
-                            </button>
-                          </div>
-                        )}
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-mono">
-                          #{idx + 1}
-                        </span>
-                        <button
-                          onClick={() => handleRemoveFile(idx)}
-                          className="p-1 text-red-400 hover:bg-red-950/40 rounded transition-colors"
-                          title="Delete File"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                  <div>
+                    <label className="text-xs text-slate-400 font-semibold block">Paper Background:</label>
+                    <select
+                      value={paperStyle}
+                      onChange={(e) => setPaperStyle(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white mt-1 font-semibold focus:border-indigo-500"
+                    >
+                      <option value="ruled">Blue Ruled Notebook Line</option>
+                      <option value="legal">Yellow Legal Pad</option>
+                      <option value="grid">Math Grid Paper</option>
+                      <option value="plain">Blank White Paper</option>
+                    </select>
+                  </div>
                 </div>
-              )}
-            </div>
 
-            {/* Right: Tool Config Parameters */}
-            <div className="space-y-4 border-t md:border-t-0 md:border-l border-slate-800 pt-4 md:pt-0 md:pl-6">
-              <h4 className="text-xs font-extrabold text-slate-300 uppercase tracking-wider">
-                Tool Parameters & Configuration:
-              </h4>
-
-              {selectedTool.id === 'split' && (
-                <div className="space-y-2">
-                  <label className="text-xs text-slate-400 font-semibold">Page Range to Extract (e.g. 1-3, 5):</label>
-                  <input
-                    type="text"
-                    value={splitRange}
-                    onChange={(e) => setSplitRange(e.target.value)}
-                    placeholder="e.g. 1-2 or 1,3,5"
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
-                  />
-                </div>
-              )}
-
-              {selectedTool.id === 'remove_pages' && (
-                <div className="space-y-2">
-                  <label className="text-xs text-slate-400 font-semibold">Page Numbers to Remove (comma separated):</label>
-                  <input
-                    type="text"
-                    value={removePagesStr}
-                    onChange={(e) => setRemovePagesStr(e.target.value)}
-                    placeholder="e.g. 2, 4"
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
-                  />
-                </div>
-              )}
-
-              {selectedTool.id === 'rotate' && (
-                <div className="space-y-2">
-                  <label className="text-xs text-slate-400 font-semibold">Rotation Angle:</label>
+                <div className="flex items-center gap-3">
+                  <label className="text-xs text-slate-400 font-semibold">Ink Color:</label>
                   <div className="flex gap-2">
-                    {[90, 180, 270].map((angle) => (
+                    {[
+                      { color: '#1e3a8a', label: 'Royal Blue' },
+                      { color: '#000000', label: 'Black Pen' },
+                      { color: '#dc2626', label: 'Red Pen' }
+                    ].map((ink) => (
                       <button
-                        key={angle}
-                        onClick={() => setRotateAngle(angle)}
-                        className={`flex-1 py-2 rounded-xl text-xs font-bold border ${
-                          rotateAngle === angle
-                            ? 'bg-indigo-600 text-white border-indigo-500'
-                            : 'bg-slate-900 text-slate-400 border-slate-800'
+                        key={ink.color}
+                        onClick={() => setInkColor(ink.color)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                          inkColor === ink.color
+                            ? 'border-indigo-500 bg-indigo-500/20 text-white shadow-lg'
+                            : 'border-slate-800 bg-slate-900 text-slate-400 hover:text-white'
                         }`}
                       >
-                        {angle}° Clockwise
+                        <span className="w-3 h-3 rounded-full shadow" style={{ backgroundColor: ink.color }} />
+                        <span>{ink.label}</span>
                       </button>
                     ))}
                   </div>
                 </div>
-              )}
 
-              {selectedTool.id === 'watermark' && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs text-slate-400 font-semibold">Watermark Text:</label>
+                {/* File Upload Option for PDF / File Mode */}
+                {selectedTool.id === 'handwritten' && (
+                  <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
+                    <label className="text-xs text-slate-300 font-bold block">
+                      Optional: Upload PDF or TXT to extract text automatically:
+                    </label>
                     <input
-                      type="text"
-                      value={watermarkText}
-                      onChange={(e) => setWatermarkText(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white mt-1"
+                      type="file"
+                      accept=".pdf,.txt"
+                      onChange={handleFileChange}
+                      className="text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer"
                     />
+                    {files.length > 0 && (
+                      <p className="text-[11px] text-emerald-400 font-bold">
+                        Loaded: {files[0].name}
+                      </p>
+                    )}
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div>
-                      <label className="text-xs text-slate-400 font-semibold block">Stamp Color:</label>
-                      <input
-                        type="color"
-                        value={watermarkColor}
-                        onChange={(e) => setWatermarkColor(e.target.value)}
-                        className="w-10 h-8 bg-transparent cursor-pointer mt-1"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="text-xs text-slate-400 font-semibold block">Opacity: {watermarkOpacity}</label>
-                      <input
-                        type="range"
-                        min="0.1"
-                        max="1"
-                        step="0.1"
-                        value={watermarkOpacity}
-                        onChange={(e) => setWatermarkOpacity(e.target.value)}
-                        className="w-full mt-1 accent-indigo-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
+                )}
 
-              {selectedTool.id === 'page_numbers' && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs text-slate-400 font-semibold">Number Position:</label>
-                    <select
-                      value={pageNumPosition}
-                      onChange={(e) => setPageNumPosition(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white mt-1"
-                    >
-                      <option value="bottom-center">Bottom Center</option>
-                      <option value="bottom-left">Bottom Left</option>
-                      <option value="bottom-right">Bottom Right</option>
-                      <option value="top-center">Top Center</option>
-                      <option value="top-left">Top Left</option>
-                      <option value="top-right">Top Right</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-400 font-semibold">Format:</label>
-                    <input
-                      type="text"
-                      value={pageNumFormat}
-                      onChange={(e) => setPageNumFormat(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white mt-1"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {selectedTool.id === 'protect' && (
-                <div className="space-y-2">
-                  <label className="text-xs text-slate-400 font-semibold">PDF Encryption Password:</label>
-                  <input
-                    type="password"
-                    placeholder="Enter secret password..."
-                    value={pdfPassword}
-                    onChange={(e) => setPdfPassword(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
+                {/* Textarea */}
+                <div>
+                  <label className="text-xs text-slate-400 font-semibold block mb-1">
+                    Type or Paste Assignment Text Below:
+                  </label>
+                  <textarea
+                    rows={8}
+                    value={handwritingText}
+                    onChange={(e) => setHandwritingText(e.target.value)}
+                    placeholder="Type or paste your assignment text here..."
+                    className="w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 text-xs text-white font-mono focus:outline-none focus:border-indigo-500 leading-relaxed shadow-inner"
                   />
                 </div>
-              )}
+              </div>
 
-              {(selectedTool.id === 'handwritten' || selectedTool.id === 'type2handwritten') && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-xs text-slate-400 font-semibold block">Handwriting Font:</label>
-                      <select
-                        value={handwritingFont}
-                        onChange={(e) => setHandwritingFont(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white mt-1 font-semibold"
-                      >
-                        <option value="Kalam">Kalam (Cursive)</option>
-                        <option value="Caveat">Caveat (Flowing)</option>
-                        <option value="Dancing Script">Dancing Script (Elegant)</option>
-                        <option value="Patrick Hand">Patrick Hand (Neat)</option>
-                        <option value="Shadows Into Light">Shadows Into Light (Quick)</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-xs text-slate-400 font-semibold block">Paper Style:</label>
-                      <select
-                        value={paperStyle}
-                        onChange={(e) => setPaperStyle(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white mt-1 font-semibold"
-                      >
-                        <option value="ruled">Blue Ruled Notebook Line</option>
-                        <option value="legal">Yellow Legal Pad</option>
-                        <option value="grid">Math Grid Paper</option>
-                        <option value="plain">Blank White Paper</option>
-                      </select>
-                    </div>
-                  </div>
+              {/* Right Column: Live Real-Time Notebook Sheet Preview */}
+              <div className="space-y-3 flex flex-col items-center justify-center bg-[#050810] border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl">
+                <div className="w-full flex items-center justify-between border-b border-slate-800/80 pb-3">
+                  <span className="text-xs font-extrabold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-indigo-400" /> Live Notebook Page 1 Preview
+                  </span>
+                  <span className="text-[10px] text-slate-400 bg-slate-900 px-2.5 py-1 rounded-full border border-slate-800 font-mono">
+                    Live Rendering
+                  </span>
+                </div>
 
+                <div className="w-full flex justify-center py-2">
+                  <canvas
+                    ref={previewCanvasRef}
+                    className="w-full max-w-[380px] h-auto rounded-xl shadow-2xl border border-slate-300"
+                  />
+                </div>
+                <p className="text-[11px] text-slate-500 text-center">
+                  Changes render instantly on this preview sheet as you type.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#080c14] border border-slate-800 rounded-2xl p-6">
+              {/* Left: Files List */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-extrabold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                  <span>Selected Files ({files.length}):</span>
                   <div className="flex items-center gap-3">
-                    <label className="text-xs text-slate-400 font-semibold">Ink Color:</label>
+                    {selectedTool.multiple && (
+                      <label htmlFor="tool-file-input" className="text-indigo-400 hover:underline text-[11px] cursor-pointer font-bold">
+                        + Add File
+                      </label>
+                    )}
+                    {files.length > 0 && (
+                      <button onClick={() => setFiles([])} className="text-red-400 hover:underline text-[11px]">
+                        Remove All
+                      </button>
+                    )}
+                  </div>
+                </h4>
+
+                {files.length === 0 ? (
+                  <div className="p-6 border border-slate-800/80 rounded-xl text-center text-xs text-slate-500">
+                    No files selected yet. Click "Browse Files" or drag & drop files here.
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    {files.map((file, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between gap-2 text-xs"
+                      >
+                        <div className="truncate flex-1">
+                          <p className="font-bold text-slate-200 truncate">{file.name}</p>
+                          <p className="text-[10px] text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          {selectedTool.multiple && (
+                            <div className="flex items-center gap-0.5">
+                              <button
+                                disabled={idx === 0}
+                                onClick={() => handleMoveFile(idx, -1)}
+                                className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] disabled:opacity-30"
+                                title="Move Up"
+                              >
+                                ▲
+                              </button>
+                              <button
+                                disabled={idx === files.length - 1}
+                                onClick={() => handleMoveFile(idx, 1)}
+                                className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] disabled:opacity-30"
+                                title="Move Down"
+                              >
+                                ▼
+                              </button>
+                            </div>
+                          )}
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-mono">
+                            #{idx + 1}
+                          </span>
+                          <button
+                            onClick={() => handleRemoveFile(idx)}
+                            className="p-1 text-red-400 hover:bg-red-950/40 rounded transition-colors"
+                            title="Delete File"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Right: Tool Config Parameters */}
+              <div className="space-y-4 border-t md:border-t-0 md:border-l border-slate-800 pt-4 md:pt-0 md:pl-6">
+                <h4 className="text-xs font-extrabold text-slate-300 uppercase tracking-wider">
+                  Tool Parameters & Configuration:
+                </h4>
+
+                {selectedTool.id === 'split' && (
+                  <div className="space-y-2">
+                    <label className="text-xs text-slate-400 font-semibold">Page Range to Extract (e.g. 1-3, 5):</label>
+                    <input
+                      type="text"
+                      value={splitRange}
+                      onChange={(e) => setSplitRange(e.target.value)}
+                      placeholder="e.g. 1-2 or 1,3,5"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
+                    />
+                  </div>
+                )}
+
+                {selectedTool.id === 'remove_pages' && (
+                  <div className="space-y-2">
+                    <label className="text-xs text-slate-400 font-semibold">Page Numbers to Remove (comma separated):</label>
+                    <input
+                      type="text"
+                      value={removePagesStr}
+                      onChange={(e) => setRemovePagesStr(e.target.value)}
+                      placeholder="e.g. 2, 4"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
+                    />
+                  </div>
+                )}
+
+                {selectedTool.id === 'rotate' && (
+                  <div className="space-y-2">
+                    <label className="text-xs text-slate-400 font-semibold">Rotation Angle:</label>
                     <div className="flex gap-2">
-                      {[
-                        { color: '#1e3a8a', label: 'Royal Blue' },
-                        { color: '#000000', label: 'Black Pen' },
-                        { color: '#dc2626', label: 'Red Pen' }
-                      ].map((ink) => (
+                      {[90, 180, 270].map((angle) => (
                         <button
-                          key={ink.color}
-                          onClick={() => setInkColor(ink.color)}
-                          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border ${
-                            inkColor === ink.color
-                              ? 'border-indigo-500 bg-indigo-500/20 text-white'
-                              : 'border-slate-800 bg-slate-900 text-slate-400'
+                          key={angle}
+                          onClick={() => setRotateAngle(angle)}
+                          className={`flex-1 py-2 rounded-xl text-xs font-bold border ${
+                            rotateAngle === angle
+                              ? 'bg-indigo-600 text-white border-indigo-500'
+                              : 'bg-slate-900 text-slate-400 border-slate-800'
                           }`}
                         >
-                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ink.color }} />
-                          <span>{ink.label}</span>
+                          {angle}° Clockwise
                         </button>
                       ))}
                     </div>
                   </div>
+                )}
 
-                  <div>
-                    <label className="text-xs text-slate-400 font-semibold block">
-                      Type/Paste Assignment Text (updates live on preview below):
-                    </label>
-                    <textarea
-                      rows={4}
-                      value={handwritingText}
-                      onChange={(e) => setHandwritingText(e.target.value)}
-                      placeholder="Type or paste assignment text here..."
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-white font-mono mt-1 focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-
-                  {/* Live Notebook Preview Box */}
-                  <div className="space-y-1.5 pt-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-extrabold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> Live Notebook Page 1 Preview:
-                      </span>
-                      <span className="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-                        Updates in Real-Time
-                      </span>
+                {selectedTool.id === 'watermark' && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs text-slate-400 font-semibold">Watermark Text:</label>
+                      <input
+                        type="text"
+                        value={watermarkText}
+                        onChange={(e) => setWatermarkText(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white mt-1"
+                      />
                     </div>
-                    <div className="border-2 border-slate-800 rounded-2xl p-2 bg-slate-950 flex items-center justify-center overflow-hidden shadow-inner">
-                      <canvas
-                        ref={previewCanvasRef}
-                        className="w-full max-w-[340px] h-auto rounded-lg shadow-2xl border border-slate-300"
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <label className="text-xs text-slate-400 font-semibold block">Stamp Color:</label>
+                        <input
+                          type="color"
+                          value={watermarkColor}
+                          onChange={(e) => setWatermarkColor(e.target.value)}
+                          className="w-10 h-8 bg-transparent cursor-pointer mt-1"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-xs text-slate-400 font-semibold block">Opacity: {watermarkOpacity}</label>
+                        <input
+                          type="range"
+                          min="0.1"
+                          max="1"
+                          step="0.1"
+                          value={watermarkOpacity}
+                          onChange={(e) => setWatermarkOpacity(e.target.value)}
+                          className="w-full mt-1 accent-indigo-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {selectedTool.id === 'page_numbers' && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs text-slate-400 font-semibold">Number Position:</label>
+                      <select
+                        value={pageNumPosition}
+                        onChange={(e) => setPageNumPosition(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white mt-1"
+                      >
+                        <option value="bottom-center">Bottom Center</option>
+                        <option value="bottom-left">Bottom Left</option>
+                        <option value="bottom-right">Bottom Right</option>
+                        <option value="top-center">Top Center</option>
+                        <option value="top-left">Top Left</option>
+                        <option value="top-right">Top Right</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400 font-semibold">Format:</label>
+                      <input
+                        type="text"
+                        value={pageNumFormat}
+                        onChange={(e) => setPageNumFormat(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white mt-1"
                       />
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {selectedTool.id === 'sign' && (
-                <div className="space-y-2">
-                  <label className="text-xs text-slate-400 font-semibold block">Draw E-Signature below:</label>
-                  <div className="border border-slate-700 rounded-xl bg-white overflow-hidden relative">
-                    <canvas
-                      ref={canvasRef}
-                      width={300}
-                      height={100}
-                      onMouseDown={startDrawing}
-                      onMouseMove={draw}
-                      onMouseUp={stopDrawing}
-                      onMouseLeave={stopDrawing}
-                      className="w-full h-24 cursor-crosshair"
+                {selectedTool.id === 'protect' && (
+                  <div className="space-y-2">
+                    <label className="text-xs text-slate-400 font-semibold">PDF Encryption Password:</label>
+                    <input
+                      type="password"
+                      placeholder="Enter secret password..."
+                      value={pdfPassword}
+                      onChange={(e) => setPdfPassword(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
                     />
                   </div>
-                  <div className="flex justify-between items-center pt-1">
-                    <button
-                      onClick={clearSignature}
-                      className="text-[11px] text-red-400 hover:underline font-semibold"
-                    >
-                      Clear Canvas
-                    </button>
-                    {signatureData && (
-                      <span className="text-[11px] text-emerald-400 font-bold flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" /> Signature Attached
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
+                )}
 
-              {['merge', 'compress', 'img2pdf', 'pdf2jpg', 'pdf2word', 'pdf2txt'].includes(selectedTool.id) && (
-                <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-400">
-                  <Zap className="w-4 h-4 text-indigo-400 inline mr-1" />
-                  Default high-speed client-side presets applied automatically for maximum performance.
-                </div>
-              )}
+                {selectedTool.id === 'sign' && (
+                  <div className="space-y-2">
+                    <label className="text-xs text-slate-400 font-semibold block">Draw E-Signature below:</label>
+                    <div className="border border-slate-700 rounded-xl bg-white overflow-hidden relative">
+                      <canvas
+                        ref={canvasRef}
+                        width={300}
+                        height={100}
+                        onMouseDown={startDrawing}
+                        onMouseMove={draw}
+                        onMouseUp={stopDrawing}
+                        onMouseLeave={stopDrawing}
+                        className="w-full h-24 cursor-crosshair"
+                      />
+                    </div>
+                    <div className="flex justify-between items-center pt-1">
+                      <button
+                        onClick={clearSignature}
+                        className="text-[11px] text-red-400 hover:underline font-semibold"
+                      >
+                        Clear Canvas
+                      </button>
+                      {signatureData && (
+                        <span className="text-[11px] text-emerald-400 font-bold flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Signature Attached
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {['merge', 'compress', 'img2pdf', 'pdf2jpg', 'pdf2word', 'pdf2txt'].includes(selectedTool.id) && (
+                  <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-400">
+                    <Zap className="w-4 h-4 text-indigo-400 inline mr-1" />
+                    Default high-speed client-side presets applied automatically for maximum performance.
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Text Preview Output for PDF to Text */}
           {extractedTextPreview && (
