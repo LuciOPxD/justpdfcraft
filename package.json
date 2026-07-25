@@ -1,35 +1,12 @@
 {
   "name": "justpdfcraft",
-  "private": true,
-  "version": "2.0.0",
-  "type": "module",
+  "version": "1.0.0",
+  "description": "Complete Free Browser-Based PDF Tools",
+  "main": "index.html",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build && node -e \"require('fs').cpSync('dist', '.', {recursive: true})\"",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "deploy": "npm run build && npx gh-pages -d dist",
-    "push": "npm run deploy && git add . && git commit -m \"Deploy React 19 production build to main root and gh-pages\" && git push"
+    "start": "serve -s . -l $PORT"
   },
   "dependencies": {
-    "canvas-confetti": "^1.9.4",
-    "docx": "^9.7.1",
-    "html2canvas": "^1.4.1",
-    "jspdf": "^2.5.2",
-    "jszip": "^3.10.1",
-    "lucide-react": "^0.475.0",
-    "pdf-lib": "^1.17.1",
-    "pdfjs-dist": "^6.1.200",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
-  },
-  "devDependencies": {
-    "@tailwindcss/vite": "^4.0.7",
-    "@types/react": "^19.0.8",
-    "@types/react-dom": "^19.0.3",
-    "@vitejs/plugin-react": "^4.3.4",
-    "gh-pages": "^6.3.0",
-    "tailwindcss": "^4.0.7",
-    "vite": "^6.1.0"
+    "serve": "^14.2.1"
   }
 }
