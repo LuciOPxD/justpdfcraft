@@ -329,7 +329,16 @@ function showPanel(id, addToHistory = true) {
   document.querySelectorAll('.mobile-tool-btn').forEach(b => b.classList.remove('active'));
   
   const p = document.getElementById('panel-' + id);
-  if (p) p.classList.add('active');
+  if (p) {
+    p.classList.add('active');
+    if (id !== 'home' && !p.querySelector('.panel-back-btn')) {
+      const backBtn = document.createElement('div');
+      backBtn.className = 'panel-back-btn';
+      backBtn.innerHTML = '← All Tools';
+      backBtn.onclick = () => showPanel('home');
+      p.insertBefore(backBtn, p.firstChild);
+    }
+  }
   
   if (id === 'sign') initSignCanvas();
   if (id === 'handwriting') renderHandwritingPreview();
@@ -410,6 +419,9 @@ function showPanel(id, addToHistory = true) {
     // Render local activity on startup
     renderActivity();
 
+    // Initialize 21st.dev style card spotlight hover effects
+    initSpotlightCards();
+
     // Inject back buttons into panels
     document.querySelectorAll('.panel:not(#panel-home)').forEach(panel => {
       if (!panel.querySelector('.panel-back-btn')) {
@@ -422,19 +434,87 @@ function showPanel(id, addToHistory = true) {
     });
   });
 
-
-
+  // ── 21st.dev Style Category & Tool Filtering ──
+  let currentCategoryFilter = 'all';
   let filterTimeout;
+
+  function setCategoryFilter(category, btnEl) {
+    currentCategoryFilter = category;
+    document.querySelectorAll('.cat-pill').forEach(btn => btn.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+    
+    const searchInput = document.getElementById('tool-search');
+    applyToolFilters(searchInput ? searchInput.value : '');
+  }
+
   function filterTools(q) {
     clearTimeout(filterTimeout);
     filterTimeout = setTimeout(() => {
-      q = q.toLowerCase();
-      const cards = document.querySelectorAll('.tool-card');
-      cards.forEach(c => {
-        const t = (c.querySelector('.tc-name')?.textContent + ' ' + c.querySelector('.tc-desc')?.textContent).toLowerCase();
-        c.style.display = (!q || t.includes(q)) ? '' : 'none';
+      applyToolFilters(q);
+    }, 80);
+  }
+
+  function applyToolFilters(q = '') {
+    q = q.trim().toLowerCase();
+    const cards = document.querySelectorAll('.tool-card');
+    const sections = document.querySelectorAll('.tool-section-wrapper');
+
+    cards.forEach(card => {
+      const name = (card.querySelector('.tc-name')?.textContent || '').toLowerCase();
+      const desc = (card.querySelector('.tc-desc')?.textContent || '').toLowerCase();
+      const cardCats = (card.getAttribute('data-category') || '').split(',').map(c => c.trim());
+
+      const matchesSearch = !q || name.includes(q) || desc.includes(q);
+      const matchesCategory = (currentCategoryFilter === 'all') || cardCats.includes(currentCategoryFilter);
+
+      if (matchesSearch && matchesCategory) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    // Check each section wrapper if it has visible cards
+    sections.forEach(sec => {
+      const visibleCards = sec.querySelectorAll('.tool-card:not([style*="display: none"])');
+      sec.style.display = (visibleCards.length > 0) ? '' : 'none';
+    });
+  }
+
+  function focusToolSearch() {
+    showPanel('home');
+    const input = document.getElementById('tool-search');
+    if (input) {
+      setTimeout(() => {
+        input.focus();
+        input.select();
+      }, 50);
+    }
+  }
+
+  // Global Keyboard Shortcuts (Press / or Ctrl+K to search)
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      focusToolSearch();
+    } else if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      focusToolSearch();
+    }
+  });
+
+  // Aceternity-style Spotlight tracking for tool cards
+  function initSpotlightCards() {
+    const cards = document.querySelectorAll('.spotlight-card');
+    cards.forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
       });
-    }, 150);
+    });
   }
 
   function toggleTheme() {
@@ -3354,8 +3434,10 @@ let hwRenderTimeout;
 
 async function ensureFontLoaded(fontFamily, size = 26) {
   try {
+    // Strip wrapping CSS single-quotes (e.g. "'Homemade Apple'" → "Homemade Apple")
+    const cleanFamily = fontFamily.replace(/^'|'$/g, '');
     if (document.fonts && document.fonts.load) {
-      await document.fonts.load(`${size}px ${fontFamily}`);
+      await document.fonts.load(`${size}px '${cleanFamily}'`);
     }
   } catch (e) {
     console.warn("Font loading fallback to system:", e);
