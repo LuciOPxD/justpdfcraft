@@ -30,7 +30,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,600;0,700&family=Roboto+Slab:wght@400;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Homemade+Apple&family=Shadows+Into+Light&family=Patrick+Hand&family=Architects+Daughter&family=Gochi+Hand&family=Reenie+Beanie&family=Delius&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./style.css?v=20">
+<link rel="stylesheet" href="./style.css?v=21">
 
 </head>
 <body class="dashboard-body">
@@ -87,6 +87,11 @@
     <button class="mobile-tool-btn" onclick="showPanel('pdf2img'); closeMobileMenu()"><span class="icon">&#128248;</span> PDF &rarr; Image</button>
     <button class="mobile-tool-btn" id="mbtn-pdf2txt" onclick="showPanel('pdf2txt'); closeMobileMenu()"><span class="icon">📄</span> PDF &rarr; Text</button>
   </div>
+
+  <div class="mobile-sidebar-section">
+    <div class="mobile-section-title">Workspace</div>
+    <button class="mobile-tool-btn" id="mbtn-profile" onclick="showPanel('profile'); closeMobileMenu()"><span class="icon">⚙️</span> Settings & History</button>
+  </div>
 </nav>
 
 <!-- SIDEBAR -->
@@ -123,7 +128,9 @@
     <button class="tool-btn" id="btn-marks" onclick="showPanel('marks')"><span class="icon">&#128202;</span> Marks Calculator</button>
     <button class="tool-btn" id="btn-pdf2word" onclick="showPanel('pdf2word')"><span class="icon">📝</span> PDF &rarr; Word</button>
     <button class="tool-btn" id="btn-pdf2txt" onclick="showPanel('pdf2txt')"><span class="icon">📄</span> PDF &rarr; Text</button>
-    
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-heading">Workspace</div>
+    <button class="tool-btn" id="btn-profile" onclick="showPanel('profile')"><span class="icon">⚙️</span> Settings & History</button>
   </div>
 </aside>
 
@@ -248,6 +255,7 @@
     <div class="tool-card spotlight-card" data-category="student" onclick="showPanel('percentage')"><div class="tool-badge">Student</div><div class="tc-icon">%</div><div class="tc-name">Percentage Calculator</div><div class="tc-desc">Calculate percentage, remaining marks and grades</div></div>
     <div class="tool-card spotlight-card" data-category="student" onclick="showPanel('marks')"><div class="tool-badge">Student</div><div class="tc-icon">&#128202;</div><div class="tc-name">Marks Calculator</div><div class="tc-desc">Multi-subject total, average and percentage tracker</div></div>
     <div class="tool-card spotlight-card" data-category="student" onclick="showPanel('resume')"><div class="tool-badge">Popular</div><div class="tc-icon">&#128196;</div><div class="tc-name">Resume Builder</div><div class="tc-desc">Build ATS-friendly modern resumes in minutes</div></div>
+    <div class="tool-card spotlight-card" data-category="student" onclick="showPanel('profile')"><div class="tool-badge">Utility</div><div class="tc-icon">⚙️</div><div class="tc-name">Settings & History</div><div class="tc-desc">Manage workspace preferences, dark mode & view local activity</div></div>
   </div>
 </div>
 
@@ -1328,6 +1336,6 @@
   <div class="spinner"></div>
   <div class="processing-text" id="global-processing-text">Processing...</div>
 </div>
-<script src="./script.js?v=18"></script>
+<script src="./script.js?v=19"></script>
 </body>
 </html>

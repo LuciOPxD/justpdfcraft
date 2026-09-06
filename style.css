@@ -2859,35 +2859,42 @@ input[type="radio"] {
     transform: scale(0.95) !important;
   }
 
+  .header-btn-text {
+    display: none !important;
+  }
+
   .theme-btn {
-    padding: 0.35rem 0.65rem !important;
-    font-size: 0.78rem !important;
+    width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
     border-radius: 10px !important;
     white-space: nowrap !important;
     flex-shrink: 0 !important;
-    height: 34px !important;
     box-sizing: border-box !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 0.3rem !important;
+    justify-content: center !important;
+    font-size: 1.05rem !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: var(--text) !important;
+    cursor: pointer !important;
   }
-  #install-btn {
-    padding: 0.35rem 0.65rem !important;
-    font-size: 0.78rem !important;
-    border-radius: 10px !important;
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
-    height: 34px !important;
-    box-sizing: border-box !important;
+  .theme-btn:active {
+    background: rgba(99, 102, 241, 0.2) !important;
+    transform: scale(0.95) !important;
   }
 
-  @media (max-width: 380px) {
-    .header-btn-text {
-      display: none !important;
-    }
-    .theme-btn, #install-btn {
-      padding: 0.35rem 0.5rem !important;
-    }
+  #install-btn {
+    width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
+    border-radius: 10px !important;
+    font-size: 0.95rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
   }
 
   /* ── PC-style sidebar on mobile ──────────── */

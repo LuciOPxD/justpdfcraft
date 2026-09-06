@@ -342,6 +342,7 @@ function showPanel(id, addToHistory = true) {
   
   if (id === 'sign') initSignCanvas();
   if (id === 'handwriting') renderHandwritingPreview();
+  if (id === 'profile') renderActivity();
   if (id === 'resume') {
     // Small timeout to let the panel become visible first
     setTimeout(() => {
